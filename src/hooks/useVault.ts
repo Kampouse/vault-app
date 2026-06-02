@@ -2,7 +2,6 @@ import { useWallet } from '@/contexts/WalletContext';
 import { useCallback } from 'react';
 import { VAULT_CONTRACT_ID } from '@/lib/near-rpc';
 
-const LOCK_DURATION_NS = 86400000000000n; // 24h
 const TST_CONTRACT = 'wt6.kampy.testnet';
 
 export interface VaultPosition {
@@ -72,7 +71,7 @@ function decodeString(bytes: Uint8Array): string {
 function parseNativePositions(entries: StorageEntry[], connectedOwner: string | null): VaultPosition[] {
   // v6 keys: lock:<owner>:<lock_id>:amt|time  or lock:<owner>:next_id
   // v5 keys: lock:<owner>:amt|time  (no lock_id)
-  const lockMap = new Map<string, { amt: Uint8Array | null; time: Uint8Array | null }>();
+  const lockMap = new Map<string, { amt: Uint8Array | null; time: Uint8Array | null; dur: Uint8Array | null }>();
 
   for (const e of entries) {
     if (!e.key.startsWith('lock:')) continue;
@@ -84,20 +83,21 @@ function parseNativePositions(entries: StorageEntry[], connectedOwner: string | 
     const tail = rest.slice(colonIdx + 1); // "<lock_id>:amt" or "amt" or "next_id"
     const lastColon = tail.lastIndexOf(':');
     const suffix = lastColon >= 0 ? tail.slice(lastColon + 1) : tail;
-    if (suffix !== 'amt' && suffix !== 'time') continue;
+    if (suffix !== 'amt' && suffix !== 'time' && suffix !== 'dur') continue;
     const lockId = lastColon >= 0 ? tail.slice(0, lastColon) : '0';
     const mapKey = `${owner}:${lockId}`;
-    if (!lockMap.has(mapKey)) lockMap.set(mapKey, { amt: null, time: null });
+    if (!lockMap.has(mapKey)) lockMap.set(mapKey, { amt: null, time: null, dur: null });
     const entry = lockMap.get(mapKey)!;
     if (suffix === 'amt') entry.amt = e.valueBytes;
     if (suffix === 'time') entry.time = e.valueBytes;
+    if (suffix === 'dur') entry.dur = e.valueBytes;
   }
 
   const nowNs = BigInt(Date.now()) * 1_000_000n;
   const positions: VaultPosition[] = [];
 
   const yoctoPerNear = 10n ** 24n;
-  for (const [mapKey, { amt, time }] of lockMap) {
+  for (const [mapKey, { amt, time, dur }] of lockMap) {
     if (!amt || !time) continue;
     const colonIdx = mapKey.indexOf(':');
     const owner = mapKey.slice(0, colonIdx);
@@ -108,14 +108,8 @@ function parseNativePositions(entries: StorageEntry[], connectedOwner: string | 
     if (amount === 0n) continue;
 
     const unlockAtNs = untagI64(time);
-
-    const nearWhole = amount / yoctoPerNear;
-    const nearFrac = amount % yoctoPerNear;
-    const amountHuman = nearFrac === 0n
-      ? `${nearWhole}`
-      : `${nearWhole}.${nearFrac.toString().padStart(24, '0').replace(/0+$/, '')}`;
-
-    const lockedAtNs = unlockAtNs - 86400000000000n;
+    const durNs = dur ? untagI64(dur) : 0n;
+    const lockedAtNs = durNs > 0n ? unlockAtNs - durNs : 0n;
     positions.push({
       id: `native:${owner}:${lockId}`,
       type: 'native',
@@ -131,13 +125,13 @@ function parseNativePositions(entries: StorageEntry[], connectedOwner: string | 
 }
 
 function parseFtPositions(entries: StorageEntry[], connectedOwner: string | null): VaultPosition[] {
-  const tokenMap = new Map<string, { amt: Uint8Array | null; time: Uint8Array | null }>();
+  const tokenMap = new Map<string, { amt: Uint8Array | null; time: Uint8Array | null; dur: Uint8Array | null }>();
 
   for (const e of entries) {
     if (!e.key.startsWith('ft:')) continue;
     const rest = e.key.slice(3);
-    if (!rest.endsWith(':amt') && !rest.endsWith(':time')) continue;
-    const suffix = rest.endsWith(':amt') ? 'amt' : 'time';
+    if (!rest.endsWith(':amt') && !rest.endsWith(':time') && !rest.endsWith(':dur')) continue;
+    const suffix = rest.endsWith(':amt') ? 'amt' : rest.endsWith(':time') ? 'time' : 'dur';
     const prefix = rest.slice(0, -(suffix.length + 1));
 
     const colonIdx = prefix.indexOf(':');
@@ -146,16 +140,17 @@ function parseFtPositions(entries: StorageEntry[], connectedOwner: string | null
     const tokenContract = prefix.slice(colonIdx + 1);
     if (!owner || !tokenContract) continue;
 
-    if (!tokenMap.has(prefix)) tokenMap.set(prefix, { amt: null, time: null });
+    if (!tokenMap.has(prefix)) tokenMap.set(prefix, { amt: null, time: null, dur: null });
     const entry = tokenMap.get(prefix)!;
     if (suffix === 'amt') entry.amt = e.valueBytes;
     if (suffix === 'time') entry.time = e.valueBytes;
+    if (suffix === 'dur') entry.dur = e.valueBytes;
   }
 
   const nowNs = BigInt(Date.now()) * 1_000_000n;
   const positions: VaultPosition[] = [];
 
-  for (const [prefix, { amt, time }] of tokenMap) {
+  for (const [prefix, { amt, time, dur }] of tokenMap) {
     if (!amt || !time) continue;
     const colonIdx = prefix.indexOf(':');
     const owner = prefix.slice(0, colonIdx);
@@ -165,8 +160,9 @@ function parseFtPositions(entries: StorageEntry[], connectedOwner: string | null
     const amountStr = decodeString(amt);
     const amount = BigInt(amountStr) || 0n;
     if (amount === 0n) continue;
-    const lockedAt = untagI64(time);
-    const unlockAt = lockedAt + LOCK_DURATION_NS;
+    const unlockAt = untagI64(time);
+    const durNs = dur ? untagI64(dur) : 0n;
+    const lockedAt = durNs > 0n ? unlockAt - durNs : 0n;
 
     positions.push({
       id: `ft:${owner}:${tokenContract}`,
