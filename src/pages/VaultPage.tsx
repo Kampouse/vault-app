@@ -152,16 +152,16 @@ function LockSheet({ open, onClose, onLock, onLockFt, locking, ftPositions }: {
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 rounded-t-2xl rounded-b-none sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white">Lock Token</DialogTitle>
+          <DialogTitle className="text-foreground">Lock Token</DialogTitle>
           <DialogDescription>Lock tokens for a set period. Claim them back when the timer expires.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div>
-            <label className="block text-xs text-zinc-500 mb-1.5 font-medium">Asset</label>
+            <label className="block text-xs text-muted-foreground mb-1.5 font-medium">Asset</label>
             <select
               value={asset}
               onChange={(e) => { setAsset(e.target.value); setAmount('1'); }}
-              className="w-full h-12 bg-zinc-800 border border-zinc-700 rounded-xl px-4 text-white text-lg font-bold outline-none focus:border-lime-500/50 transition-colors appearance-none cursor-pointer"
+              className="w-full h-12 bg-background border border-input rounded-xl px-4 text-lg font-bold outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500 transition-colors appearance-none cursor-pointer"
             >
               <option value="NEAR">NEAR</option>
               {ftTokenList.map(t => (
@@ -170,28 +170,28 @@ function LockSheet({ open, onClose, onLock, onLockFt, locking, ftPositions }: {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-zinc-500 mb-1.5 font-medium">Amount ({isFt ? 'tokens' : 'NEAR'})</label>
+            <label className="block text-xs text-muted-foreground mb-1.5 font-medium">Amount ({isFt ? 'tokens' : 'NEAR'})</label>
             <input
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full h-12 bg-zinc-800 border border-zinc-700 rounded-xl px-4 text-white text-xl font-bold outline-none focus:border-lime-500/50 transition-colors"
+              className="w-full h-12 bg-background border border-input rounded-xl px-4 text-xl font-bold outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs text-zinc-500 mb-1.5 font-medium">Duration (hours)</label>
+            <label className="block text-xs text-muted-foreground mb-1.5 font-medium">Duration (hours)</label>
             <input
               type="number"
               min="1"
               step="1"
               value={hours}
               onChange={(e) => setHours(e.target.value)}
-              className="w-full h-12 bg-zinc-800 border border-zinc-700 rounded-xl px-4 text-white text-xl font-bold outline-none focus:border-lime-500/50 transition-colors"
+              className="w-full h-12 bg-background border border-input rounded-xl px-4 text-xl font-bold outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs text-zinc-500 mb-1.5 font-medium">Unlock at</label>
-            <div className="w-full h-12 bg-zinc-800 border border-zinc-700 rounded-xl px-4 flex items-center text-white text-xl font-bold tabular-nums">
+            <label className="block text-xs text-muted-foreground mb-1.5 font-medium">Unlock at</label>
+            <div className="w-full h-12 bg-background border border-input rounded-xl px-4 flex items-center text-xl font-bold tabular-nums">
               {new Date(Date.now() + durationNs / 1_000_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
