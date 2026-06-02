@@ -1,0 +1,12 @@
+{
+  "name": "vault-proof",
+  "private": true,
+  "scripts": {
+    "proof": "tsx proof.ts"
+  },
+  "dependencies": {
+    "borsh": "^1.0.0",
+    "near-api-js": "^5.1.0",
+    "tsx": "^4.19.0"
+  }
+}

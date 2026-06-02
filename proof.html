@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Vault Proof — Live on-chain verification</title>
+  <meta name="theme-color" content="#00ec97" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090b; --surface: #18181b; --border: #27272a;
+      --text: #fafafa; --muted: #71717a; --green: #00ec97;
+      --red: #ef4444; --amber: #f59e0b; --blue: #3b82f6;
+    }
+    body { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .card h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .card h2 .step { background: var(--green); color: var(--bg); width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+    .row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .row:last-child { border-bottom: none; }
+    .row .label { color: var(--muted); }
+    .row .value { font-weight: 600; text-align: right; word-break: break-all; max-width: 60%; }
+
+    .hex { color: var(--blue); font-size: 11px; }
+    .ok { color: var(--green); }
+    .fail { color: var(--red); }
+    .warn { color: var(--amber); }
+
+    .raw { background: #0c0c0e; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 11px; line-height: 1.6; margin-top: 8px; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
+
+    .btn { background: var(--green); color: var(--bg); border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; width: 100%; }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sm { padding: 7px 14px; font-size: 12px; width: auto; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger { background: var(--red); }
+
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    input, select { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; }
+    input:focus, select:focus { border-color: var(--green); }
+    input[type="text"] { width: 200px; }
+    input[type="number"] { width: 100px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-ok { background: #00ec9720; color: var(--green); }
+    .badge-fail { background: #ef444420; color: var(--red); }
+    .badge-warn { background: #f59e0b20; color: var(--amber); }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 32px; padding-bottom: 16px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🔐 Vault Proof</h1>
+  <p class="subtitle">
+    Live on-chain verification — <a href="https://testnet.near.rocks/account/vault.kampy.testnet" target="_blank">vault.kampy.testnet</a> · NEAR Testnet · Compiled from Lisp via lisp-rlm
+  </p>
+
+  <div class="controls">
+    <select id="accountSel">
+      <option value="">Connect wallet to prove…</option>
+    </select>
+    <input type="text" id="customAccount" placeholder="or enter account…" />
+    <input type="number" id="lockAmt" placeholder="NEAR" value="0.5" min="0.01" step="0.1" />
+    <button class="btn btn-sm btn-outline" id="inspectBtn">🔍 Inspect</button>
+    <button class="btn btn-sm" id="proveBtn" disabled>⚡ Full Proof</button>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="footer">
+    Vault contract compiled from Lisp DSL → WASM via lisp-rlm.<br>
+    Zero JavaScript/TypeScript/Solidity in the contract — pure Lisp.
+  </div>
+</div>
+
+<script type="module" src="/src/proof/main.ts"></script>
+</body>
+</html>
