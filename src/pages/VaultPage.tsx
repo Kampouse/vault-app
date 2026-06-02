@@ -85,11 +85,11 @@ function PositionRing({ positions }: { positions: VaultPosition[] }) {
     return (
       <div className="relative w-48 h-48 mx-auto">
         <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-          <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="12" className="text-zinc-700" />
+          <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="12" className="text-muted" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <Lock className="w-8 h-8 text-zinc-600 mb-1" />
-          <span className="text-zinc-500 text-sm">No positions</span>
+          <Lock className="w-8 h-8 text-muted-foreground/50 mb-1" />
+          <span className="text-muted-foreground text-sm">No positions</span>
         </div>
       </div>
     );
@@ -102,7 +102,7 @@ function PositionRing({ positions }: { positions: VaultPosition[] }) {
   return (
     <div className="relative w-48 h-48 mx-auto">
       <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
-        <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="12" className="text-zinc-700" />
+        <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="12" className="text-muted" />
         {locked > 0 && (
           <circle cx="100" cy="100" r="80" fill="none" stroke="#facc15" strokeWidth="12"
             strokeDasharray={`${lockedLen} ${circumference}`} strokeLinecap="round" className="transition-all duration-700" />
@@ -114,8 +114,8 @@ function PositionRing({ positions }: { positions: VaultPosition[] }) {
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-foreground">{total}</span>
-        <span className="text-zinc-300 text-xs">{total === 1 ? 'position' : 'positions'}</span>
+        <span className="text-2xl font-bold">{total}</span>
+        <span className="text-muted-foreground text-xs">{total === 1 ? 'position' : 'positions'}</span>
         {unlockable > 0 && <span className="text-lime-400 text-xs mt-0.5 font-medium">{unlockable} ready</span>}
       </div>
     </div>
@@ -333,30 +333,24 @@ export default function VaultPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+      {/* Header — minimal transparent like outlayer-wallet */}
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-lime-500/10 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-lime-400" />
-            </div>
-            <span className="font-semibold text-white">Vault</span>
-            <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">{network}</span>
+            <Zap className="w-5 h-5 text-lime-400" />
+            <span className="font-semibold">Vault</span>
           </div>
           {isConnected && accountId ? (
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-zinc-800 rounded-lg px-3 py-1.5">
-                <div className="w-2 h-2 rounded-full bg-lime-400" />
-                <span className="text-xs text-zinc-300 font-mono">{shortenAddress(accountId)}</span>
-              </div>
-              <button onClick={disconnect} className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors" title="Disconnect">
+              <span className="text-xs text-muted-foreground font-mono">{shortenAddress(accountId)}</span>
+              <button onClick={disconnect} className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted" title="Disconnect">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button onClick={requestLogin}
-              className="flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/80 transition-colors">
-              <Wallet className="w-4 h-4" />
+              className="flex items-center gap-1.5 bg-muted text-foreground px-3 py-1.5 rounded-full text-xs font-medium hover:bg-muted/80 transition-colors">
+              <Wallet className="w-3.5 h-3.5" />
               Connect
             </button>
           )}
@@ -367,12 +361,12 @@ export default function VaultPage() {
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 space-y-6">
         {!isConnected && positions.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-            <div className="w-20 h-20 rounded-2xl bg-zinc-800/50 flex items-center justify-center">
-              <Wallet className="w-10 h-10 text-zinc-600" />
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+              <Wallet className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-white">Connect Your Wallet</h2>
-              <p className="text-zinc-400 text-sm max-w-xs">
+              <h2 className="text-xl font-semibold">Connect Your Wallet</h2>
+              <p className="text-muted-foreground text-sm max-w-xs">
                 Connect a NEAR wallet to lock tokens, view your positions, and claim unlocked funds.
               </p>
             </div>
@@ -383,8 +377,8 @@ export default function VaultPage() {
           </div>
         ) : loading ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-            <RefreshCw className="w-8 h-8 text-zinc-600 animate-spin" />
-            <span className="text-zinc-500 text-sm">Loading positions...</span>
+            <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" />
+            <span className="text-muted-foreground text-sm">Loading positions…</span>
           </div>
         ) : (
           <div className="space-y-6">
@@ -392,15 +386,15 @@ export default function VaultPage() {
             <div className="space-y-4">
               <PositionRing positions={livePositions} />
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl p-4 text-center">
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Total Locked</p>
-                  <p className="text-2xl font-bold text-lime-400 tabular-nums">{totalLockedDisplay}</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">NEAR</p>
+                <div className="rounded-2xl bg-card/50 border border-border/50 p-4 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Total Locked</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{totalLockedDisplay}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">NEAR</p>
                 </div>
-                <div className="rounded-xl p-4 text-center">
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Unlockable</p>
-                  <p className="text-2xl font-bold text-lime-400 tabular-nums">{unlockableCount}</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">{unlockableCount === 1 ? 'position' : 'positions'}</p>
+                <div className="rounded-2xl bg-card/50 border border-border/50 p-4 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Unlockable</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{unlockableCount}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{unlockableCount === 1 ? 'position' : 'positions'}</p>
                 </div>
               </div>
             </div>
@@ -427,68 +421,70 @@ export default function VaultPage() {
             {/* Positions List */}
             {livePositions.length === 0 ? (
               <div className="text-center py-12 space-y-3">
-                <Lock className="w-10 h-10 text-zinc-700 mx-auto" />
-                <p className="text-zinc-500 text-sm">No locked positions yet.</p>
-                <p className="text-zinc-600 text-xs">Lock NEAR to create your first position.</p>
+                <Lock className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+                <p className="text-muted-foreground text-sm">No locked positions yet.</p>
+                <p className="text-muted-foreground/60 text-xs">Lock NEAR to create your first position.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-zinc-400 px-1">Locked Positions</h3>
-                {livePositions.map((pos) => (
-                  <div
-                    key={pos.id}
-                    className={`rounded-xl border p-4 space-y-3 transition-colors ${
-                      pos.expired
-                        ? 'border-lime-500/20'
-                        : 'border-zinc-700/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-extrabold shrink-0 ${TOKEN_COLORS[pos.token] ?? 'bg-zinc-500/15 text-zinc-400'}`}>
-                        {pos.token[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold">{pos.token}</div>
-                        <div className="text-[11px] text-zinc-500">
-                          {pos.type === 'native'
-                            ? `Native NEAR · ${fmtDuration(pos.unlockAtNs - pos.lockedAtNs)} lock`
-                            : `${pos.tokenContract} · NEP-141`}
+                <span className="text-xs font-medium text-muted-foreground px-1">Locked Positions</span>
+                <div className="rounded-2xl border border-border/50 bg-card/50 divide-y divide-border/30 px-3">
+                  {livePositions.map((pos) => (
+                    <div
+                      key={pos.id}
+                      className={`py-3 space-y-2 transition-colors ${
+                        pos.expired
+                          ? ''
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${TOKEN_COLORS[pos.token] ?? 'bg-muted text-muted-foreground'}`}>
+                          {pos.token[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{pos.token}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {pos.type === 'native'
+                              ? `Native NEAR · ${fmtDuration(pos.unlockAtNs - pos.lockedAtNs)} lock`
+                              : `${pos.tokenContract} · NEP-141`}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-sm font-medium tabular-nums">{fmtAmt(pos.amount, pos.token)}</div>
+                          <div className={`text-[11px] font-medium tabular-nums ${pos.expired ? 'text-lime-500' : 'text-amber-400'}`}>
+                            {pos.expired ? 'Ready' : timeUntilUnlock(pos.unlockAtNs)}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-sm font-bold tabular-nums">{fmtAmt(pos.amount, pos.token)}</div>
-                        <div className={`text-[11px] font-medium tabular-nums ${pos.expired ? 'text-lime-500' : 'text-amber-400'}`}>
-                          {pos.expired ? 'Ready' : timeUntilUnlock(pos.unlockAtNs)}
-                        </div>
+                      <div className="h-[3px] rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 ${pos.expired ? 'bg-lime-500' : 'bg-amber-400'}`}
+                          style={{ width: `${pct(pos.lockedAtNs, pos.unlockAtNs)}%` }}
+                        />
                       </div>
+                      {pos.expired && (
+                        <button
+                          onClick={() => handleClaim(pos)}
+                          disabled={claimingId === pos.id}
+                          className="mt-2 w-full h-10 rounded-xl bg-lime-500 text-background text-xs font-bold flex items-center justify-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                          {claimingId === pos.id ? (
+                            <><RefreshCw size={14} className="animate-spin" /> Unlocking…</>
+                          ) : (
+                            <><Unlock size={14} /> Claim</>
+                          )}
+                        </button>
+                      )}
                     </div>
-                    <div className="h-[3px] rounded-full bg-zinc-800 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-1000 ${pos.expired ? 'bg-lime-500' : 'bg-amber-400'}`}
-                        style={{ width: `${pct(pos.lockedAtNs, pos.unlockAtNs)}%` }}
-                      />
-                    </div>
-                    {pos.expired && (
-                      <button
-                        onClick={() => handleClaim(pos)}
-                        disabled={claimingId === pos.id}
-                        className="mt-3 w-full h-11 rounded-xl bg-lime-500 text-background text-xs font-bold flex items-center justify-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                      >
-                        {claimingId === pos.id ? (
-                          <><RefreshCw size={14} className="animate-spin" /> Unlocking…</>
-                        ) : (
-                          <><Unlock size={14} /> Claim</>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
             {/* Footer */}
-            <div className="text-center py-4 space-y-1">
-              <p className="text-xs text-zinc-600">1 NEAR per lock · 24h lock period · Claim when ready</p>
+            <div className="text-center py-4">
+              <p className="text-xs text-muted-foreground/60">vault.kampy.testnet · Timelock Vault</p>
             </div>
           </div>
         )}
