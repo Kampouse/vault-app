@@ -70,43 +70,44 @@ function decodeString(bytes: Uint8Array): string {
 }
 
 function parseNativePositions(entries: StorageEntry[], connectedOwner: string | null): VaultPosition[] {
-  const ownerMap = new Map<string, { deposit: Uint8Array | null; amt: Uint8Array | null; unlock: Uint8Array | null }>();
+  // v6 keys: lock:<owner>:<lock_id>:amt|time  or lock:<owner>:next_id
+  // v5 keys: lock:<owner>:amt|time  (no lock_id)
+  const lockMap = new Map<string, { amt: Uint8Array | null; time: Uint8Array | null }>();
 
   for (const e of entries) {
     if (!e.key.startsWith('lock:')) continue;
-    const rest = e.key.slice(5);
-    const colonIdx = rest.lastIndexOf(':');
+    const rest = e.key.slice(5); // strip "lock:"
+    // First colon separates owner from the rest
+    const colonIdx = rest.indexOf(':');
     if (colonIdx < 0) continue;
-    const suffix = rest.slice(colonIdx + 1);
-    if (suffix !== 'deposit' && suffix !== 'amt' && suffix !== 'unlock' && suffix !== 'time') continue;
     const owner = rest.slice(0, colonIdx);
-    if (!owner) continue;
-    if (!ownerMap.has(owner)) ownerMap.set(owner, { deposit: null, amt: null, unlock: null });
-    const entry = ownerMap.get(owner)!;
-    if (suffix === 'deposit') entry.deposit = e.valueBytes;
+    const tail = rest.slice(colonIdx + 1); // "<lock_id>:amt" or "amt" or "next_id"
+    const lastColon = tail.lastIndexOf(':');
+    const suffix = lastColon >= 0 ? tail.slice(lastColon + 1) : tail;
+    if (suffix !== 'amt' && suffix !== 'time') continue;
+    const lockId = lastColon >= 0 ? tail.slice(0, lastColon) : '0';
+    const mapKey = `${owner}:${lockId}`;
+    if (!lockMap.has(mapKey)) lockMap.set(mapKey, { amt: null, time: null });
+    const entry = lockMap.get(mapKey)!;
     if (suffix === 'amt') entry.amt = e.valueBytes;
-    if (suffix === 'unlock') entry.unlock = e.valueBytes;
-    if (suffix === 'time' && !entry.unlock) entry.unlock = e.valueBytes;
+    if (suffix === 'time') entry.time = e.valueBytes;
   }
 
   const nowNs = BigInt(Date.now()) * 1_000_000n;
   const positions: VaultPosition[] = [];
 
   const yoctoPerNear = 10n ** 24n;
-  for (const [owner, { deposit, amt, unlock }] of ownerMap) {
-    if (!unlock) continue;
-    const unlockAtNs = untagI64(unlock);
+  for (const [mapKey, { amt, time }] of lockMap) {
+    if (!amt || !time) continue;
+    const colonIdx = mapKey.indexOf(':');
+    const owner = mapKey.slice(0, colonIdx);
+    const lockId = mapKey.slice(colonIdx + 1);
     if (connectedOwner && owner !== connectedOwner) continue;
 
-    let amount: bigint;
-    if (deposit) {
-      amount = readU128(deposit);
-    } else if (amt) {
-      amount = readU128(amt);
-    } else {
-      continue;
-    }
+    const amount = readU128(amt);
     if (amount === 0n) continue;
+
+    const unlockAtNs = untagI64(time);
 
     const nearWhole = amount / yoctoPerNear;
     const nearFrac = amount % yoctoPerNear;
@@ -116,7 +117,7 @@ function parseNativePositions(entries: StorageEntry[], connectedOwner: string | 
 
     const lockedAtNs = unlockAtNs - 86400000000000n;
     positions.push({
-      id: `native:${owner}`,
+      id: `native:${owner}:${lockId}`,
       type: 'native',
       token: 'NEAR',
       amount: amount.toString(),
@@ -216,9 +217,12 @@ export function useVault() {
         actions: [functionCall('claim_ft', { sender_id: accountId, token: pos.tokenContract })],
       });
     } else {
+      // Extract lock_id from position id ("native:<owner>:<lock_id>")
+      const parts = pos.id.split(':');
+      const lockId = parts.length > 2 ? parts[2] : '0';
       await signAndSendTransaction({
         receiverId: VAULT_CONTRACT_ID,
-        actions: [functionCall('claim', { owner: accountId })],
+        actions: [functionCall('claim', { owner: accountId, lock_id: lockId })],
       });
     }
   }, [accountId, signAndSendTransaction]);
